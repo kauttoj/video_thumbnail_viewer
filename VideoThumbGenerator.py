@@ -150,7 +150,7 @@ class VideoThumbGenerator(object):
                  OUTPATH = r'D:\Downloads\thumbnail_testing',
                  INFOLDER = r'D:\Downloads',
                  SIZE = 17, # figure width in inches
-                 OUTTIMES = (10,), # separations, in minutes
+                 OUTTIMES = (3,10), # separations, in minutes
                  NWORKERS = 3,
                  FFMPEG_PATH = r'C:\Users\JanneK\PycharmProjects\VideoThumbViewer' + os.sep,
                  EXTENSIONS = ('.mp4','.avi','.mov','.mpg','.wmv','.mkv','.m4v','.flv')):
@@ -195,6 +195,7 @@ class VideoThumbGenerator(object):
 
         OUTTIMES = [round(x) for x in self.OUTTIMES]
         OUTTIMES = list(set(OUTTIMES))
+        OUTTIMES.sort()
 
         assert(all([a>0 & a<1000 for a in OUTTIMES]));
         assert(0<len(OUTTIMES)<100)
@@ -204,7 +205,7 @@ class VideoThumbGenerator(object):
         if len(OUTTIMES)==0:
             OUTFOLDER = [self.OUTPATH]
         else:
-            OUTFOLDER = ['']*(len(OUTTIMES)+1)
+            OUTFOLDER = ['' for _ in range(len(OUTTIMES)+1)]
             OUTFOLDER[0] = self.OUTPATH+os.sep+'less_than_%imin' % OUTTIMES[0]
             for i in range(1,len(OUTTIMES)):
                 OUTFOLDER[i] = self.OUTPATH + os.sep + 'between_%imin_and_%imin' % (OUTTIMES[i-1],OUTTIMES[i])
@@ -279,7 +280,7 @@ class VideoThumbGenerator(object):
 #        for k in range(len(allfiles)):
         N1= len(textfiles)
         elapsed =  time.time()-start_time
-        print('..summary: %i files processed in %is (%f videos/sec)' % (N1,round(elapsed),elapsed/N1))
+        print('..summary: %i files processed in %is (%f videos/sec)' % (N1,round(elapsed),N1/elapsed))
 
         print('\nphase 3: writing textfiles')
         
@@ -305,5 +306,5 @@ class VideoThumbGenerator(object):
 
 if __name__ == '__main__':
     __spec__ = "ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>)"
-    obj = VideoThumbGenerator(OUTPATH=r'H:\Downloads\conn\video_preview_images',INFOLDER=r'H:\Downloads\conn',FFMPEG_PATH='',NWORKERS=1)
+    obj = VideoThumbGenerator(OUTPATH=r'E:\folder\video_preview_images',INFOLDER=r'E:\folder',FFMPEG_PATH='',NWORKERS=1)
     obj.run()
