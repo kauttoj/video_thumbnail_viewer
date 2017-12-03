@@ -24,13 +24,14 @@ from os import startfile
 from threading import Thread
 from pubsub import pub
 from VideoThumbGenerator import VideoThumbGenerator
+from operator import itemgetter
 
 #import images
 
 #---------------------------------------------------------------------------
 
-WIDTH = 1300
-HEIGHT = 800
+WIDTH = 1400
+HEIGHT = 900
 FIGURES_PER_PAGE = 200
 
 def scale_bitmap(bitmap, width, height):
@@ -155,6 +156,7 @@ class MegaTable(Grid.GridTableBase):
     # begin the added code to manipulate the table (non wx related)
     def AppendRow(self, row):
         #print('append')
+        return
         entry = {}
 
         for name in self.colnames:
@@ -173,6 +175,7 @@ class MegaTable(Grid.GridTableBase):
         # we'll cheat here and just remove the name from the
         # list of column names.  The data will remain but
         # it won't be shown
+        return
         deleteCount = 0
         cols = cols[:]
         cols.sort()
@@ -191,6 +194,7 @@ class MegaTable(Grid.GridTableBase):
         rows -> delete the rows from the dataset
         rows hold the row indices
         """
+        return
         deleteCount = 0
         rows = rows[:]
         rows.sort()
@@ -204,19 +208,27 @@ class MegaTable(Grid.GridTableBase):
     def SortColumn(self, col):
         """
         col -> sort the data based on the column indexed by col
-        """
+        """    
         name = self.colnames[col]
-        _data = []
-
-        for row in self.data:
-            rowname, entry = row
-            _data.append((entry.get(name, None), row))
-
-        _data.sort()
-        self.data = []
-
-        for sortvalue, row in _data:
-            self.data.append(row)
+        
+        if name == 'text':       
+            
+            pub.sendMessage('sortbylength',msg='time') 
+            
+        elif name == 'video':
+            
+            pub.sendMessage('sortbylength',msg='name') 
+#            _data = []
+#    
+#            for row in self.data:
+#                rowname, entry = row
+#                _data.append((entry.get(name, None), row))                
+#            
+#            _data.sort()
+#            self.data = []
+#    
+#            for sortvalue, row in _data:
+#                self.data.append(row)
 
     # end table manipulation code
     # ----------------------------------------------------------
@@ -249,12 +261,12 @@ class MegaImageRenderer(Grid.GridCellRenderer):
         # clear the background
         dc.SetBackgroundMode(wx.SOLID)
 
-        if isSelected:
-            dc.SetBrush(wx.Brush(wx.BLUE, wx.BRUSHSTYLE_SOLID))
-            dc.SetPen(wx.Pen(wx.BLUE, 1, wx.PENSTYLE_SOLID))
-        else:
-            dc.SetBrush(wx.Brush(wx.WHITE, wx.BRUSHSTYLE_SOLID))
-            dc.SetPen(wx.Pen(wx.WHITE, 1, wx.PENSTYLE_SOLID))
+        #if isSelected:
+        #    dc.SetBrush(wx.Brush(wx.BLUE, wx.BRUSHSTYLE_SOLID))
+        #    dc.SetPen(wx.Pen(wx.BLUE, 1, wx.PENSTYLE_SOLID))
+        #else:
+        dc.SetBrush(wx.Brush(wx.WHITE, wx.BRUSHSTYLE_SOLID))
+        dc.SetPen(wx.Pen(wx.WHITE, 1, wx.PENSTYLE_SOLID))
         dc.DrawRectangle(rect)
 
         # copy the image but only to the size of the grid cell
@@ -280,7 +292,7 @@ class MegaFontRenderer(Grid.GridCellRenderer):
         self.font = wx.Font(fontsize, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, font)
         self.selectedBrush = wx.Brush("blue", wx.BRUSHSTYLE_SOLID)
         self.normalBrush = wx.Brush(wx.WHITE, wx.BRUSHSTYLE_SOLID)
-        self.colSize = None
+        self.colSize = 50
         self.rowSize = 200
 
     def Draw(self, grid, attr, dc, rect, row, col, isSelected):
@@ -293,12 +305,12 @@ class MegaFontRenderer(Grid.GridCellRenderer):
         # clear the background
         dc.SetBackgroundMode(wx.SOLID)
 
-        if isSelected:
-            dc.SetBrush(wx.Brush(wx.BLUE, wx.BRUSHSTYLE_SOLID))
-            dc.SetPen(wx.Pen(wx.BLUE, 1, wx.PENSTYLE_SOLID))
-        else:
-            dc.SetBrush(wx.Brush(wx.WHITE, wx.BRUSHSTYLE_SOLID))
-            dc.SetPen(wx.Pen(wx.WHITE, 1, wx.PENSTYLE_SOLID))
+        #if isSelected:
+        #    dc.SetBrush(wx.Brush(wx.BLUE, wx.BRUSHSTYLE_SOLID))
+        #    dc.SetPen(wx.Pen(wx.BLUE, 1, wx.PENSTYLE_SOLID))
+        #else:
+        dc.SetBrush(wx.Brush(wx.WHITE, wx.BRUSHSTYLE_SOLID))
+        dc.SetPen(wx.Pen(wx.WHITE, 1, wx.PENSTYLE_SOLID))
         dc.DrawRectangle(rect)
 
         text = self.table.GetValue(row, col)
@@ -306,12 +318,12 @@ class MegaFontRenderer(Grid.GridCellRenderer):
 
         # change the text background based on whether the grid is selected
         # or not
-        if isSelected:
-            dc.SetBrush(self.selectedBrush)
-            dc.SetTextBackground("blue")
-        else:
-            dc.SetBrush(self.normalBrush)
-            dc.SetTextBackground("white")
+        #if isSelected:
+        #    dc.SetBrush(self.selectedBrush)
+        #    dc.SetTextBackground("blue")
+        #else:
+        dc.SetBrush(self.normalBrush)
+        dc.SetTextBackground("white")
 
         dc.SetTextForeground(self.color)
         dc.SetFont(self.font)
@@ -366,6 +378,7 @@ class MegaGrid(Grid.Grid):
 
     def rowPopup(self, row, evt):
         """(row, evt) -> display a popup menu when a row label is right clicked"""
+        return
         appendID = wx.NewId()
         deleteID = wx.NewId()
         x = self.GetRowSize(row)/2
@@ -397,38 +410,39 @@ class MegaGrid(Grid.Grid):
     def colPopup(self, col, evt):
         """(col, evt) -> display a popup menu when a column label is
         right clicked"""
-        x = self.GetColSize(col)/2
-        menu = wx.Menu()
-        id1 = wx.NewId()
-        sortID = wx.NewId()
-
-        xo, yo = evt.GetPosition()
-        self.SelectCol(col)
-        cols = self.GetSelectedCols()
-        self.Refresh()
-        menu.Append(id1, "Delete Col(s)")
-        menu.Append(sortID, "Sort Column")
-
-        def delete(event, self=self, col=col):
+        if col>=0:
+            x = self.GetColSize(col)/2
+            menu = wx.Menu()
+            id1 = wx.NewId()
+            sortID = wx.NewId()
+    
+            xo, yo = evt.GetPosition()
+            self.SelectCol(col)
             cols = self.GetSelectedCols()
-            self._table.DeleteCols(cols)
-            self.Reset()
-
-        def sort(event, self=self, col=col):
-            self._table.SortColumn(col)
-            self.Reset()
-
-        self.Bind(wx.EVT_MENU, delete, id=id1)
-
-        if len(cols) == 1:
-            self.Bind(wx.EVT_MENU, sort, id=sortID)
-
-        self.PopupMenu(menu)
-        menu.Destroy()
+            self.Refresh()
+            menu.Append(id1, "Delete Col(s)")
+            menu.Append(sortID, "Sort Column")
+    
+            def delete(event, self=self, col=col):
+                cols = self.GetSelectedCols()
+                self._table.DeleteCols(cols)
+                self.Reset()
+    
+            def sort(event, self=self, col=col):
+                self._table.SortColumn(col)
+                self.Reset()
+    
+            self.Bind(wx.EVT_MENU, delete, id=id1)
+    
+            if len(cols) == 1:
+                self.Bind(wx.EVT_MENU, sort, id=sortID)
+    
+            self.PopupMenu(menu)
+            menu.Destroy()
         return
 
 
-colnames = ["video"]
+colnames = ["video","text"]
 data = []
 
 class MegaFontRendererFactory:
@@ -470,7 +484,7 @@ class MyThread(Thread):
         pub.sendMessage("generatorFinished",msg=msg)                      
         
 class TestFrame(wx.Frame):
-    def __init__(self, parent=None, plugins={"text":MegaFontRendererFactory("red", "ARIAL", 8),
+    def __init__(self, parent=None, plugins={"text":MegaFontRendererFactory("red", "ARIAL", 11),
                                         "video":MegaImageRenderer}):
         wx.Frame.__init__(self, None, -1,
                          "Video Thumbnail Viewer (ver 1)", size=(WIDTH,HEIGHT))
@@ -480,6 +494,7 @@ class TestFrame(wx.Frame):
         #self.panel_top.SetBackgroundColour('RED')
         
         pub.subscribe(self.generatorFinished,('generatorFinished'))
+        pub.subscribe(self.sortRows,('sortbylength'))
 
         self.btn_generate = wx.Button(self.panel_bottom,-1,"Generate")#,size=(150,40),pos=(0.30*WIDTH,HEIGHT-50))
         self.btn_generate.Bind(wx.EVT_BUTTON,self.onClicked_generate)
@@ -489,6 +504,8 @@ class TestFrame(wx.Frame):
         self.btn_next.Bind(wx.EVT_BUTTON,self.onClicked_next)          
         self.infotext = wx.TextCtrl(self.panel_bottom, -1, "",style = wx.TE_READONLY | wx.TE_CENTRE )  # | wx.BORDER_NONE
        
+        #panel_top_sizer = wx.BoxSizer(wx.HORIZONTAL,)
+        
         panel_bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
         panel_bottom_sizer.Add(self.btn_generate, 0, wx.ALIGN_CENTER, 0)
         panel_bottom_sizer.Add(self.btn_prev,0,wx.ALIGN_CENTER,0)
@@ -497,22 +514,24 @@ class TestFrame(wx.Frame):
         self.panel_bottom.SetSizer(panel_bottom_sizer)    
 
         self.picPaths = []        
-        self.COLWIDTH = WIDTH-70
+        self.COLWIDTH = WIDTH-70 - 65
         self.MAX_ROWHEIGHT = int(0.60*WIDTH)
         self.PageNum = 0
         self.TotalPages = 0
         self.totalImages = 0
+        self.vidDuration=[]
+        self.picNames = []
         self.folderPath = []
 
         self.grid = MegaGrid(self.panel_top, data, colnames, plugins)
         
         self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.onRightClick)
         
-        self.grid.SetColLabelSize(0)
+        self.grid.SetColLabelSize(30)
         self.grid.SetRowLabelSize(50)
         
         sizer_grid = wx.BoxSizer(wx.VERTICAL)
-        sizer_grid.Add(self.grid, 1, wx.ALL)                    
+        sizer_grid.Add(self.grid, 1, wx.EXPAND)                    
         self.panel_top.SetSizer(sizer_grid) 
         
         sizer_panels = wx.BoxSizer(wx.VERTICAL)
@@ -589,23 +608,44 @@ class TestFrame(wx.Frame):
                     
         dlg.Destroy()        
 
+    def sortRows(self,msg=None):        
+        
+        if msg=='time':
+            ind = [x[0] for x in sorted(enumerate(self.vidDuration), key=itemgetter(1))]
+        elif msg=='name':
+            ind = [x[0] for x in sorted(enumerate(self.picNames), key=itemgetter(1))]
+        else:
+            raise('unknown sort!')
+        
+        self.vidDuration = [self.vidDuration[x] for x in ind]
+        self.vidPaths = [self.vidPaths[x] for x in ind]
+        self.picPaths = [self.picPaths[x] for x in ind]
+        self.picNames = [self.picNames[x] for x in ind]
+        
+        self.PageNum = 0
+        self.SetData()    
+        self.grid.Reset()        
+        self.updateText()
+
     def onClicked_next(self,event):
-        newpage = self.PageNum+1
-        newpage=min(newpage,self.TotalPages-1)  
-        if newpage!=self.PageNum:
-            self.PageNum = newpage
-            self.SetData()    
-            self.grid.Reset() 
-            self.updateText()
+        if self.TotalPages>0:
+            newpage = self.PageNum+1
+            newpage=min(newpage,self.TotalPages-1)  
+            if newpage!=self.PageNum:
+                self.PageNum = newpage
+                self.SetData()    
+                self.grid.Reset() 
+                self.updateText()
     
     def onClicked_prev(self,event):
-        newpage = self.PageNum-1
-        newpage=max(newpage,0)  
-        if newpage!=self.PageNum:
-            self.PageNum = newpage
-            self.SetData()    
-            self.grid.Reset()  
-            self.updateText()
+        if self.TotalPages>0:
+            newpage = self.PageNum-1
+            newpage=max(newpage,0)  
+            if newpage!=self.PageNum:
+                self.PageNum = newpage
+                self.SetData()    
+                self.grid.Reset()  
+                self.updateText()
         
     def onOpenDirectory(self,event,defaultpath = None):
         """
@@ -615,6 +655,7 @@ class TestFrame(wx.Frame):
                            style=wx.DD_DEFAULT_STYLE)        
         picPaths = []
         vidPaths = []
+        vidDuration=[]
         if dlg.ShowModal() == wx.ID_OK:
             self.folderPath = dlg.GetPath()
             print(self.folderPath)
@@ -622,7 +663,7 @@ class TestFrame(wx.Frame):
             filename = self.folderPath + os.sep + 'MyVideoThumbs.dat'
 
             if os.path.isfile(filename):
-                picPaths,vidPaths = self.load_images(filename)
+                picPaths,vidPaths,vidDuration,picNames = self.load_images(filename)
             else:
                 self.updateText(text='No "MyVideoThumbs.dat" found, run generator first.\n Folder is: %s' % self.folderPath)
             #picPaths = glob.glob(self.folderPath + "\\*.jpg")
@@ -631,7 +672,10 @@ class TestFrame(wx.Frame):
         if len(picPaths)>0:
             self.vidPaths = vidPaths
             self.picPaths = picPaths
+            self.picNames = picNames
+            self.vidDuration = vidDuration
             self.totalImages = len(picPaths)
+            assert(len(self.vidDuration) == self.totalImages == len(self.vidPaths) )
             self.TotalPages = int(math.ceil(len(picPaths)/FIGURES_PER_PAGE))
             self.PageNum = 0
             self.SetData()
@@ -642,6 +686,8 @@ class TestFrame(wx.Frame):
 
         pics = []
         videos = []
+        duration = []
+        names = []
         
         self.updateText(text='Loading images from MyVideoThumbs.dat...') 
 
@@ -653,11 +699,13 @@ class TestFrame(wx.Frame):
 
             for d in data:
                 dd = d.split(';')
-                if len(dd)==3:
+                if len(dd)==4:
                     file = dd[0] + os.sep + dd[1]
                     if os.path.isfile(file) and os.path.isfile(dd[2]):
+                        names.append(dd[1])
                         pics.append(file)
                         videos.append(dd[2])
+                        duration.append(dd[3])
                     else:
                         print('Files %s and %s not found!\n' % (file,dd[2]))
                 else:
@@ -667,9 +715,9 @@ class TestFrame(wx.Frame):
         except:
             pass
 
-        return pics,videos
+        return pics,videos,duration,names
                 
-    def SetData(self):
+    def SetData(self,issorted = False):
             
         ind1 = self.PageNum*FIGURES_PER_PAGE
         ind2 = min((self.PageNum+1)*FIGURES_PER_PAGE,len(self.picPaths))
@@ -694,11 +742,12 @@ class TestFrame(wx.Frame):
                 width = self.MAX_ROWHEIGHT*ratio
                 height = self.MAX_ROWHEIGHT                
                                 
-            d = (str(i+1),{'video':self.picPaths[i],'dims':(width, height,ratio)})
+            d = (str(i+1),{'video':self.picPaths[i],'dims':(width, height,ratio),'text':self.vidDuration[i]})
             self.grid._table.data.append(d)
             
 
 if __name__ == '__main__':
+    __spec__ = "ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>)"
     app = wx.App(redirect=False)  # Error messages go to popup window
     top = TestFrame()
     top.Show()

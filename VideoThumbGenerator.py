@@ -120,24 +120,24 @@ def process_file(k,DATA):
     aspect = img[0].shape[0] / img[0].shape[1]
 
     N_FRAMES = len(points)
-    fig1 = plt.figure(figsize=(SIZE*1.02,(SIZE*aspect/N_FRAMES)*1.07))
+    fig1 = plt.figure(figsize=(SIZE*1.02,(SIZE*aspect/N_FRAMES)*1.08))
     dx = 0.98/N_FRAMES
     dxx = 0.020/(N_FRAMES-1)
     middle = round(N_FRAMES/2)-1
     for i in range(N_FRAMES):
 
-        ax = fig1.add_axes([i*(dx+dxx),0,dx,0.9345794392523364])
+        ax = fig1.add_axes([i*(dx+dxx),0,dx,0.9259259259259258])
         ax.imshow(img[i],aspect='auto')
         ax.axis('off')
         txt = ax.text(0.05,0.95,'%is' % points[i],horizontalalignment='center',size=12,verticalalignment='center',transform = ax.transAxes,color='black')
         txt.set_path_effects([PathEffects.withStroke(linewidth=2, foreground='w')])
         if i==middle:
-            ax.set_title(INPUT_FILE,fontsize=11)
+            ax.set_title(INPUT_FILE,fontsize=10)
 
     fig1.savefig(outfile)
     plt.close(fig1)
 
-    textfiles = (folder_index, (OUTFOLDER[folder_index] + ';' + output + ';' + INPUT_FILE))
+    textfiles = (folder_index,(OUTFOLDER[folder_index] + ';' + output + ';' + INPUT_FILE + ';' + str(duration)))
 
     print('... DONE %s' % INPUT_FILE)
 
@@ -150,7 +150,7 @@ class VideoThumbGenerator(object):
                  OUTPATH = r'D:\Downloads\thumbnail_testing',
                  INFOLDER = r'D:\Downloads',
                  SIZE = 17, # figure width in inches
-                 OUTTIMES = (3,10), # separations, in minutes
+                 OUTTIMES = (5,20), # separations, in minutes
                  NWORKERS = 3,
                  FFMPEG_PATH = r'C:\Users\JanneK\PycharmProjects\VideoThumbViewer' + os.sep,
                  EXTENSIONS = ('.mp4','.avi','.mov','.mpg','.wmv','.mkv','.m4v','.flv')):
@@ -235,7 +235,7 @@ class VideoThumbGenerator(object):
             alloutfiles.append(newname)
 
         assert(len(alloutfiles)==len(allfiles))
-        print('Total %i files found\n' % len(allfiles))
+        print('Total %i files found' % len(allfiles))
 
         N = len(allfiles)
         assert(N<10000)  # lets not go grazy
