@@ -30,9 +30,9 @@ from operator import itemgetter
 
 #---------------------------------------------------------------------------
 
-WIDTH = 1400
-HEIGHT = 900
-FIGURES_PER_PAGE = 200
+WIDTH = 0.80 # of primary monitor
+HEIGHT = 0.75 # of primary monitor
+FIGURES_PER_PAGE = 200 # grid size
 
 def scale_bitmap(bitmap, width, height):
     image = bitmap.ConvertToImage()
@@ -485,9 +485,9 @@ class MyThread(Thread):
         
 class TestFrame(wx.Frame):
     def __init__(self, parent=None, plugins={"text":MegaFontRendererFactory("red", "ARIAL", 11),
-                                        "video":MegaImageRenderer}):
-        wx.Frame.__init__(self, None, -1,
-                         "Video Thumbnail Viewer (ver 1)", size=(WIDTH,HEIGHT))
+                                        "video":MegaImageRenderer}):        
+
+        wx.Frame.__init__(self, None, -1,"Video Thumbnail Viewer (ver 1)", size=(WIDTH,HEIGHT))
         self.panel_top = wx.Panel(self, size=(WIDTH,HEIGHT-100),pos=(0,0),style=wx.SIMPLE_BORDER)        
         #self.panel_top.SetBackgroundColour('#FDDF99')
         self.panel_bottom = wx.Panel(self, size=(WIDTH,100),pos=(0,HEIGHT-100),style=wx.SIMPLE_BORDER)        
@@ -611,7 +611,8 @@ class TestFrame(wx.Frame):
     def sortRows(self,msg=None):        
         
         if msg=='time':
-            ind = [x[0] for x in sorted(enumerate(self.vidDuration), key=itemgetter(1))]
+            dat = [int(x) for x in self.vidDuration]
+            ind = [x[0] for x in sorted(enumerate(dat), key=itemgetter(1))]
         elif msg=='name':
             ind = [x[0] for x in sorted(enumerate(self.picNames), key=itemgetter(1))]
         else:
@@ -698,7 +699,7 @@ class TestFrame(wx.Frame):
             data = data.split('\n')
 
             for d in data:
-                dd = d.split(';')
+                dd = d.split('|')
                 if len(dd)==4:
                     file = dd[0] + os.sep + dd[1]
                     if os.path.isfile(file) and os.path.isfile(dd[2]):
@@ -747,8 +748,16 @@ class TestFrame(wx.Frame):
             
 
 if __name__ == '__main__':
-    __spec__ = "ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>)"
+    __spec__ = "ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>)"       
+    
     app = wx.App(redirect=False)  # Error messages go to popup window
+    
+    displays = (wx.Display(i) for i in range(wx.Display.GetCount()))
+    sizes = [display.GetGeometry().GetSize() for display in displays]     
+    
+    WIDTH = round(sizes[0][0]*WIDTH)
+    HEIGHT = round(sizes[0][1]*HEIGHT)
+    
     top = TestFrame()
     top.Show()
     app.MainLoop()

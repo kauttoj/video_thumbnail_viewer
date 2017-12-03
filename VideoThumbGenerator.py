@@ -137,7 +137,7 @@ def process_file(k,DATA):
     fig1.savefig(outfile)
     plt.close(fig1)
 
-    textfiles = (folder_index,(OUTFOLDER[folder_index] + ';' + output + ';' + INPUT_FILE + ';' + str(duration)))
+    textfiles = (folder_index,(OUTFOLDER[folder_index] + '|' + output + '|' + INPUT_FILE + '|' + str(duration)))
 
     print('... DONE %s' % INPUT_FILE)
 
@@ -146,11 +146,11 @@ def process_file(k,DATA):
 class VideoThumbGenerator(object):
 
     def __init__(self,
-                 TIMEPOINTS = (0.30,0.60,0.80),
+                 TIMEPOINTS = (0.30,0.60,0.85),
                  OUTPATH = r'D:\Downloads\thumbnail_testing',
                  INFOLDER = r'D:\Downloads',
                  SIZE = 17, # figure width in inches
-                 OUTTIMES = (5,20), # separations, in minutes
+                 OUTTIMES = (2,15), # separations, in minutes
                  NWORKERS = 3,
                  FFMPEG_PATH = r'C:\Users\JanneK\PycharmProjects\VideoThumbViewer' + os.sep,
                  EXTENSIONS = ('.mp4','.avi','.mov','.mpg','.wmv','.mkv','.m4v','.flv')):
